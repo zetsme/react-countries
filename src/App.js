@@ -1,25 +1,32 @@
-import logo from './logo.svg';
-import './App.css';
+import { useFetch } from './hooks/useFetch';
+import { useFilteredSearch } from './hooks/useFilter';
+import API from './API';
+import CountriesList from './components/CountriesList';
+import { useCallback, useState } from 'react';
+import CountriesRegionFilter from './components/CountriesRegionFilter';
+import CountriesSearch from './components/CountriesSearch';
+import CountriesSort from './components/CountriesSort';
 
-function App() {
+const App = () => {
+  const { data, error, loading } = useFetch(useCallback(async () => await API.getAll(), []));
+  const [filter, setFilter] = useState({ region: 'All', query: '', sort: '' });
+
+  const filtered = useFilteredSearch(data, filter.query, filter.region, filter.sort);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      {error && <h1>{error}</h1>}
+      {loading && <h1>Loading ....</h1>}
+      {!error && !loading && data.length > 0 && (
+        <>
+          <CountriesRegionFilter region={filter.region} setFilter={setFilter} countries={data} />
+          <CountriesSort setFilter={setFilter} />
+          <CountriesSearch setFilter={setFilter} />
+          <CountriesList countries={filtered} />
+        </>
+      )}
     </div>
   );
-}
+};
 
 export default App;
